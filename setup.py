@@ -6,6 +6,8 @@ setup(
     py_modules=['trello'],
     install_requires=[
         'Click',
+        'requests',
+        'python-dotenv'
     ],
     entry_points='''
         [console_scripts]
