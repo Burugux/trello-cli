@@ -27,8 +27,14 @@ def cli():
 @click.option('--comment', '-c', type=str, help='Adds a comment to a card', required=False)
 def add_card(board, list_, text, label, comment):
     """Work with trello cards"""
+    if not board:
+        sys.exit("Please specify a board name")
+
+    if not list_:
+        sys.exit("Please specify a list name")
+
     if not text:
-        sys.exit("A card's text can not be empty.")
+        sys.exit("A card's text can not be empty")
 
     all_boards = get_boards()
     if not all_boards:
