@@ -7,7 +7,8 @@ setup(
     install_requires=[
         'Click',
         'requests',
-        'python-dotenv'
+        'python-dotenv',
+        'pytest'
     ],
     entry_points='''
         [console_scripts]
