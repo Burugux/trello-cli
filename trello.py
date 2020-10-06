@@ -36,13 +36,13 @@ def add_card(board, list_, text):
     all_lists = []
     for b in all_boards:
         for k, v in b.items():
-            if k == 'name' and v.lower() == board.lower():
+            if k == 'name' and v.lower() == board.strip().lower():
                 all_lists = get_lists(b['id'])
 
     list_id = None
     for l in all_lists:
         for k, v in l.items():
-            if k == 'name' and v.lower() == list_.lower():
+            if k == 'name' and v.lower() == list_.strip().lower():
                 list_id = l['id']
 
     query = {
