@@ -22,9 +22,10 @@ def cli():
 @click.option('--board', '-b', type=str, help='The board the card will be added to')
 @click.option('--list', '-l', 'list_', type=str, help='List that the card will be added to')
 @click.option('--text', '-t', type=str, help='Text you want to add to a card')
-def add_card(board, list_, text):
+@click.option('--label', '-a', nargs=2, type=str, help='Adds a label to a card', required=False)
+@click.option('--comment', '-c', type=str, help='Adds a comment to a card', required=False)
+def add_card(board, list_, text, label, comment):
     """Work with trello cards"""
-
     if not text:
         sys.exit("A card's text can not be empty.")
 
@@ -34,10 +35,12 @@ def add_card(board, list_, text):
         sys.exit(0)
 
     all_lists = []
+    board_id = None
     for b in all_boards:
         for k, v in b.items():
             if k == 'name' and v.lower() == board.strip().lower():
-                all_lists = get_lists(b['id'])
+                board_id = b['id']
+                all_lists = get_lists(board_id)
 
     list_id = None
     for l in all_lists:
@@ -45,11 +48,19 @@ def add_card(board, list_, text):
             if k == 'name' and v.lower() == list_.strip().lower():
                 list_id = l['id']
 
+    labels = get_labels(board_id)
+    label_ids = []
+    for i in labels:
+        for k, v in i.items():
+            if k == 'name' and v.strip() in label:
+                label_ids.append(i['id'])
+
     query = {
         'key': KEY,
         'token': TOKEN,
         'idList': list_id,
-        'name': text
+        'name': text,
+        'idLabels': label_ids
     }
 
     cardsPath = "{}/{}".format(
@@ -115,3 +126,25 @@ def get_lists(board_id):
         return response.json()
     else:
         sys.exit("Failed to get all lists: {}".format(response.status_code))
+
+
+def get_labels(board_id):
+    """Returns all labels"""
+
+    url = "{}/1/boards/{}/labels".format(baseurl, board_id)
+
+    query = {
+        'key': KEY,
+        'token': TOKEN
+    }
+
+    response = requests.request(
+        "GET",
+        url,
+        params=query
+    )
+
+    if response.ok:
+        return response.json()
+    else:
+        sys.exit("Failed to get all labels: {}".format(response.status_code))
