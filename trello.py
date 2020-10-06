@@ -24,6 +24,10 @@ def cli():
 @click.option('--text', '-t', type=str, help='Text you want to add to a card')
 def add_card(board, list_, text):
     """Work with trello cards"""
+
+    if not text:
+        sys.exit("A card's text can not be empty.")
+
     all_boards = get_boards()
     if not all_boards:
         click.echo("You do not have boards. Create a board to add cards to.")
