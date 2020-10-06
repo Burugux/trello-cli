@@ -23,7 +23,7 @@ def cli():
 @click.option('--board', '-b', type=str, help='The board the card will be added to')
 @click.option('--list', '-l', 'list_', type=str, help='List that the card will be added to')
 @click.option('--text', '-t', type=str, help='Text you want to add to a card')
-@click.option('--label', '-a', nargs=2, type=str, help='Adds a label to a card', required=False)
+@click.option('--label', '-a', multiple=True, type=str, help='Adds a label to a card', required=False)
 @click.option('--comment', '-c', type=str, help='Adds a comment to a card', required=False)
 def add_card(board, list_, text, label, comment):
     """Work with trello cards"""
@@ -48,48 +48,29 @@ def add_card(board, list_, text, label, comment):
         for k, v in l.items():
             if k == 'name' and v.lower() == list_.strip().lower():
                 list_id = l['id']
-
-    labels = get_labels(board_id)
-    label_ids = []
-    for i in labels:
-        for k, v in i.items():
-            if k == 'name' and v.strip() in label:
-                label_ids.append(i['id'])
-
-    query = {
-        'key': KEY,
-        'token': TOKEN,
-        'idList': list_id,
-        'name': text,
-        'idLabels': label_ids
-    }
-
-    cardsPath = "{}/{}".format(
-                baseurl,
-                '1/cards'
-    )
-
-    response = requests.request(
-        "POST",
-        cardsPath,
-        params=query
-    )
-    if response.ok:
-        if comment:
-            resp_dict = response.json()
-            if resp_dict.get('id'):
-                created, status = add_comment(resp_dict.get('id'), comment)
-                if created:
-                    click.echo("Card created with comment")
-                else:
-                    sys.exit(
-                        "Card created, but failed to add your comment: {}".format(status))
-        else:
-            click.echo("Card created")
-
+    if label:
+        labels = get_labels(board_id)
+        label_ids = []
+        for i in labels:
+            for k, v in i.items():
+                if k == 'name' and v.strip() in label:
+                    label_ids.append(i['id'])
+                    query = {
+                        'key': KEY,
+                        'token': TOKEN,
+                        'idList': list_id,
+                        'name': text,
+                        'idLabels': label_ids
+                    }
     else:
-        sys.exit("Failed to get all lists: {}".format(
-            response.status_code))
+        query = {
+            'key': KEY,
+            'token': TOKEN,
+            'idList': list_id,
+            'name': text
+        }
+
+    create_card(query, comment)
 
 
 def get_boards():
@@ -182,3 +163,32 @@ def add_comment(card_id, comment):
         return True, response.status_code
     else:
         return False, response.status_code
+
+
+def create_card(query, comment):
+    cardsPath = "{}/{}".format(
+        baseurl,
+        '1/cards'
+    )
+
+    response = requests.request(
+        "POST",
+        cardsPath,
+        params=query
+    )
+    if response.ok:
+        if comment:
+            resp_dict = response.json()
+            if resp_dict.get('id'):
+                created, status = add_comment(resp_dict.get('id'), comment)
+                if created:
+                    click.echo("Card created with comment")
+                else:
+                    sys.exit(
+                        "Card created, but failed to add your comment: {}".format(status))
+        else:
+            click.echo("Card created")
+
+    else:
+        sys.exit("Failed to get all lists: {}".format(
+            response.status_code))
