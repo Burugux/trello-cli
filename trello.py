@@ -2,6 +2,7 @@ import sys
 import requests
 import click
 import os
+import json
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -74,7 +75,18 @@ def add_card(board, list_, text, label, comment):
         params=query
     )
     if response.ok:
-        click.echo("Card added")
+        if comment:
+            resp_dict = response.json()
+            if resp_dict.get('id'):
+                created, status = add_comment(resp_dict.get('id'), comment)
+                if created:
+                    click.echo("Card created with comment")
+                else:
+                    sys.exit(
+                        "Card created, but failed to add your comment: {}".format(status))
+        else:
+            click.echo("Card created")
+
     else:
         sys.exit("Failed to get all lists: {}".format(
             response.status_code))
@@ -148,3 +160,25 @@ def get_labels(board_id):
         return response.json()
     else:
         sys.exit("Failed to get all labels: {}".format(response.status_code))
+
+
+def add_comment(card_id, comment):
+    url = "{}/1/cards/{}/actions/comments".format(baseurl, card_id)
+
+    query = {
+        'key': KEY,
+        'token': TOKEN,
+        'id': card_id,
+        'text': comment
+    }
+
+    response = requests.request(
+        "POST",
+        url,
+        params=query
+    )
+
+    if response.ok:
+        return True, response.status_code
+    else:
+        return False, response.status_code
