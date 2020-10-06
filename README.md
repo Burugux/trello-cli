@@ -29,7 +29,8 @@ $ tree -L 1
 ```
 * Create a .env file and add your trello key and token
 ```
-cp .env.example .env
+$ cd trello-cli
+$ cp .env.example .env
 ```
 If you don't have a key and token they can be generated [here](https://trello.com/app-key)
 
